@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Course</title> 
+    <link rel="stylesheet" href="Implement.css"> 
+</head>
+<body>
+
+    <header>
+        <h1>Implementation</h1>
+    </header>
+
+    <main>
+        <section>
+<h2>1.Efficient Route Networking</h2>
+<h3>Kruskal's code</h3>
+<pre>
+<code>
+#include <bits/stdc++.h>
+using namespace std;
+class DSU {
+    int* parent;
+    int* rank;
+
+public:
+    DSU(int n) {
+        parent = new int[n];
+        rank = new int[n];
+
+        for (int i = 0; i < n; i++) {
+            parent[i] = -1;
+            rank[i] = 1;
+        }
+    }
+
+    
+    int find(int i) {
+        if (parent[i] == -1)
+            return i;
+
+        return parent[i] = find(parent[i]);
+    }
+
+   
+    void unite(int x, int y) {
+        int s1 = find(x);
+        int s2 = find(y);
+
+        if (s1 != s2) {
+            if (rank[s1] < rank[s2]) {
+                parent[s1] = s2;
+            } else if (rank[s1] > rank[s2]) {
+                parent[s2] = s1;
+            } else {
+                parent[s2] = s1;
+                rank[s1] += 1;
+            }
+        }
+    }
+};
+
+class Graph {
+    vector<vector<float>> edgelist;
+    int V;
+
+public:
+    Graph(int V) { this->V = V; }
+
+    
+    void addEdge(int x, int y, float w) {
+        edgelist.push_back({w, x, y});
+    }
+
+    void kruskals_mst() {
+        
+        sort(edgelist.begin(), edgelist.end());
+
+        
+        DSU s(V);
+        float ans = 0;
+        int count = 0; 
+        cout << "Following are the edges in the "
+             << "constructed MST" << endl;
+        for (auto edge : edgelist) {
+            float w = edge[0];
+            int x = edge[1];
+            int y = edge[2];
+
+            if (s.find(x) != s.find(y)) {
+                s.unite(x, y);
+                ans += w;
+                cout << x << " -- " << y << " == " << w << endl;
+                count++; 
+            }
+            if (count == V - 1) {
+                break;
+            }
+        }
+        cout << "Minimum Cost Spanning Tree: " << ans;
+    }
+};
+
+
+int main() {
+  
+    int V;
+    cout << "Enter the number of vertices: ";
+    cin >> V;
+
+    Graph g(V);
+
+    
+    cout << "Enter the edges and their weights (format: x y weight):" << endl;
+    for (int i = 0; i < V - 1; ++i) {
+        int x, y;
+        float weight;
+        cin >> x >> y >> weight;
+        g.addEdge(x, y, weight);
+    }
+
+    
+    g.kruskals_mst();
+
+    return 0;
+}
+</code>
+</pre>
+<h3>Union-Find</h3>
+<pre>
+<code>
+#include <iostream>
+#include <vector>
+#include <set>
+#include <string>
+using namespace std;
+
+class UnionFind {
+private:
+    vector<int> parent;
+    vector<int> rank;
+
+public:
+    // Constructor to initialize the parent and rank arrays
+    UnionFind(int n) {
+        parent.resize(n);
+        rank.resize(n, 0);
+
+        // Initially, each element is its own parent
+        for (int i = 0; i < n; ++i) {
+            parent[i] = i;
+        }
+    }
+
+    // Find with path compression
+    int find(int x) {
+        if (parent[x] != x) {
+            parent[x] = find(parent[x]);  // Path compression
+        }
+        return parent[x];
+    }
+
+    // Union by rank
+    void unionSets(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+
+        // If both elements belong to the same set, do nothing
+        if (rootX != rootY) {
+            // Union by rank
+            if (rank[rootX] > rank[rootY]) {
+                parent[rootY] = rootX;
+            } else if (rank[rootX] < rank[rootY]) {
+                parent[rootX] = rootY;
+            } else {
+                parent[rootY] = rootX;
+                rank[rootX]++;  // Increase rank if both trees have the same rank
+            }
+        }
+    }
+
+    // Helper function to get the group (line) for a specific station
+    int getLine(int station) {
+        return find(station);
+    }
+
+    // Get all the sets (groups) based on the parent array
+    vector<set<int>> getGroups(int n) {
+        vector<set<int>> groups(n);
+        for (int i = 0; i < n; ++i) {
+            groups[find(i)].insert(i);
+        }
+        return groups;
+    }
+};
+
+int main() {
+    int n = 28; // 28 metro stations (A to Z)
+    UnionFind uf(n);
+
+    // Station names (station A, B, C, ...)
+    vector<string> stationNames = {"Airport Road", "Sampath Nagar", "Iskon", "Station D", "Station E",
+                                   "Station F", "Station G", "Station H", "Station I", "Station J",
+                                   "Station K", "Station L", "Station M", "Station N", "Station O",
+                                   "Station P", "Station Q", "Station R", "Station S", "Station T",
+                                   "Station U", "Station V", "Station W", "Station X", "Station Y",
+                                   "Station Z"};
+
+    // Example of input connections between stations (stations are 0-based index)
+    // Example of five lines connecting stations
+    uf.unionSets(0, 1); uf.unionSets(1, 2);  // Purple Line: Station A, B, C
+    uf.unionSets(3, 4); uf.unionSets(4, 5);  // Purple Line: Station D, E, F
+
+    uf.unionSets(6, 7); uf.unionSets(7, 8);  // Red Line: Station G, H, I
+    uf.unionSets(9, 10); uf.unionSets(10, 11);  // Red Line: Station J, K, L
+
+    uf.unionSets(12, 13); uf.unionSets(13, 14);  // Yellow Line: Station M, N, O
+    uf.unionSets(15, 16); uf.unionSets(16, 17);  // Yellow Line: Station P, Q, R
+
+    uf.unionSets(18, 19); uf.unionSets(19, 20);  // Orange Line: Station S, T, U
+    uf.unionSets(21, 22); uf.unionSets(22, 23);  // Orange Line: Station V, W, X
+
+    uf.unionSets(24, 25); uf.unionSets(25, 26);  // Green Line: Station Y, Z, A
+    uf.unionSets(27, 26);  // Green Line: Station B, A
+
+    // Find the groups (lines)
+    vector<set<int>> groups = uf.getGroups(n);
+
+    // Names of the 5 lines
+    vector<string> lineNames = {"Purple", "Red", "Yellow", "Orange", "Green"};
+
+    // Assign line names to each station
+    int lineCount = 0;  // Index for lineNames
+    vector<string> stationLine(n); // Array to store line names for each station
+    for (const auto& group : groups) {
+        for (int station : group) {
+            stationLine[station] = lineNames[lineCount];  // Assign the line name to the station
+        }
+        lineCount++;
+    }
+
+    // Input: Ask for a station name and output the line
+    string station;
+    cout << "Enter a station name  ";
+    getline(cin, station); // Use getline to capture full station name with spaces
+
+    // Convert station name to index (remove "Station " prefix)
+    int stationIndex = -1;
+    for (int i = 0; i < 28; ++i) {
+        if (station == stationNames[i]) {
+            stationIndex = i;
+            break;
+        }
+    }
+
+    // Check if station is valid
+    if (stationIndex != -1) {
+        // Output the line name of the given station
+        cout << stationNames[stationIndex] << " belongs to the " << stationLine[stationIndex] << " Line." << endl;
+    } else {
+        cout << "Invalid station name!" << endl;
+    }
+
+    return 0;
+}
+
+</code>
+</pre>
+
+<h2>2.Efficient Ticket System</h2>
+<h3>Priority Queue</h3>
+<pre>
+<code>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <queue>
+using namespace std;
+
+// Assigning passengers to counters based on age and gender
+void assignCounters(vector<string> names, vector<int> ages, vector<string> genders, vector<string>& counters, vector<queue<string>>& counterQueues) {
+    cout << "\n____ALLOTTED COUNTERS____\n";
+
+    for (size_t i = 0; i < names.size(); ++i) 
+    {
+        string counter;
+        if (ages[i] >= 60) 
+        {
+            counter = (genders[i] == "M") ? "Counter 1.1 (Senior Citizens - Male)" : "Counter 1.2 (Senior Citizens - Female)";
+        }
+        else if (ages[i] >= 18) 
+        {
+            counter = (genders[i] == "M") ? "Counter 2.1 (Adults - Male)" : "Counter 2.2 (Adults - Female)";
+        }
+        else 
+        {
+            counter = (genders[i] == "M") ? "Counter 3.1 (Minors - Male)" : "Counter 3.2 (Minors - Female)";
+        }
+
+        bool found = false;
+        size_t index = 0;
+
+    
+        for (size_t j = 0; j < counters.size(); ++j) 
+        {
+            if (counters[j] == counter) 
+            {
+                found = true;
+                index = j;
+                break;
+            }
+        }
+
+        if (!found) 
+        {
+            counters.push_back(counter);
+            counterQueues.push_back(queue<string>());
+            index = counters.size() - 1;
+        }
+
+        counterQueues[index].push(names[i]);
+
+        cout << names[i] << " (" << ages[i] << " years, " << genders[i] << "): " << counter << "\n";
+    }
+
+    // Display the queue for each counter
+    cout << "\n_____QUEUE___\n";
+    for (size_t i = 0; i < counters.size(); ++i) 
+    {
+        cout << counters[i] << ": ";
+        queue<string> tempQueue = counterQueues[i];
+        while (!tempQueue.empty()) 
+        {
+            cout << tempQueue.front() << " ";
+            tempQueue.pop();
+        }
+        cout << endl;
+    }
+}
+
+// Issue tickets 
+void issueTickets(vector<string>& counters, vector<queue<string>>& counterQueues) 
+{
+    bool allQueuesEmpty = false;
+    
+    while (!allQueuesEmpty) 
+    {
+        allQueuesEmpty = true;
+        for (size_t i = 0; i < counters.size(); ++i) 
+        {
+            if (!counterQueues[i].empty()) 
+            {
+                string passenger = counterQueues[i].front();
+                counterQueues[i].pop();
+                cout << "Ticket issued to " << passenger << " from " << counters[i] << ".\n";
+                allQueuesEmpty = false; // Continue looping if there's at least one queue with passengers
+            }
+        }
+    }
+}
+
+// Train Platform Manager - using vector-based implementation (no unordered_map)
+class TrainPlatformManager 
+{
+private:
+    vector<string> keys;
+    vector<string> values;
+
+public:
+    void insert(string key, string value) 
+    {
+        for (size_t i = 0; i < keys.size(); ++i) 
+        {
+            if (keys[i] == key) 
+            {
+                values[i] = value;
+                return;
+            }
+        }
+        keys.push_back(key);
+        values.push_back(value);
+    }
+
+    string search(string key) 
+    {
+        for (size_t i = 0; i < keys.size(); ++i) 
+        {
+            if (keys[i] == key) 
+            {
+                return values[i];
+            }
+        }
+        return "No train available";
+    }
+
+    void update(string key, string newValue) 
+    {
+        for (size_t i = 0; i < keys.size(); ++i) 
+        {
+            if (keys[i] == key) 
+            {
+                values[i] = newValue;
+                cout << "Updated platform at '" << key << "'\n";
+                return;
+            }
+        }
+        cout << "Platform not found at '" << key << "'\n";
+    }
+
+    void display() 
+    {
+        cout << "\n____Train Platform Details___\n";
+        for (size_t i = 0; i < keys.size(); ++i) 
+        {
+            cout << keys[i] << "-- " << values[i] << endl;
+        }
+    }
+};
+
+int main() {
+    int n;
+    cout << "Enter number of passengers: ";
+    cin >> n;
+
+    vector<string> names;
+    vector<int> ages;
+    vector<string> genders;
+
+    
+    for (int i = 0; i < n; ++i) 
+    {
+        string name, gender;
+        int age;
+        cout << "Enter name, age, and gender (M/F) for passenger " << i + 1 << ": ";
+        cin >> name >> age >> gender;
+        names.push_back(name);
+        ages.push_back(age);
+        genders.push_back(gender);
+    }
+
+    vector<string> counters;
+    vector<queue<string>> counterQueues;
+    assignCounters(names, ages, genders, counters, counterQueues);
+
+    cout << "\n___Issuing tickets___\n";
+    issueTickets(counters, counterQueues);
+
+    TrainPlatformManager platformManager;
+    platformManager.insert("Central", "Platform 1: 8:30 AM");
+    platformManager.insert("Market", "Platform 2: 9:00 AM");
+    platformManager.insert("Library", "Platform 3: 10:15 AM");
+
+    platformManager.display();
+
+    platformManager.update("Market", "Platform 2: 9:30 AM");
+    platformManager.display();
+    
+    return 0;
+}
+<h2>3.Platform Crowd Management</h2>
+<h3>AVL Tree and Priority Queue</h3>
+</code>
+</pre>
+<pre>
+<code>
+#include <iostream>
+#include <queue>
+#include <vector>
+#include <cmath>
+#include <climits>
+
+using namespace std;
+
+// Platform node for AVL Tree and Priority Queue
+struct Platform {
+    int platform_id;
+    int crowd_density;
+    vector<int> train_ids; // List of train IDs
+
+    Platform(int id, int density, vector<int> trains)
+        : platform_id(id), crowd_density(density), train_ids(trains) {}
+
+    // Define comparison operator for max-heap (priority queue)
+    bool operator<(const Platform& other) const {
+        return crowd_density < other.crowd_density; // Max-heap by crowd density
+    }
+};
+
+// AVL Tree Node
+struct AVLNode {
+    Platform platform;
+    AVLNode* left;
+    AVLNode* right;
+    int height;
+
+    AVLNode(Platform p) : platform(p), left(nullptr), right(nullptr), height(1) {}
+};
+
+// AVL Tree Class
+class AVLTree {
+private:
+    AVLNode* root;
+
+    int height(AVLNode* node) {
+        return node ? node->height : 0;
+    }
+
+    int getBalance(AVLNode* node) {
+        return node ? height(node->left) - height(node->right) : 0;
+    }
+
+    AVLNode* rightRotate(AVLNode* node) {
+        AVLNode* new_root = node->left;
+        node->left = new_root->right;
+        new_root->right = node;
+        node->height = max(height(node->left), height(node->right)) + 1;
+        new_root->height = max(height(new_root->left), height(new_root->right)) + 1;
+        return new_root;
+    }
+
+    AVLNode* leftRotate(AVLNode* node) {
+        AVLNode* new_root = node->right;
+        node->right = new_root->left;
+        new_root->left = node;
+        node->height = max(height(node->left), height(node->right)) + 1;
+        new_root->height = max(height(new_root->left), height(new_root->right)) + 1;
+        return new_root;
+    }
+
+    AVLNode* insert(AVLNode* node, Platform p) {
+        if (node == nullptr) return new AVLNode(p);
+
+        if (p.crowd_density < node->platform.crowd_density)
+            node->left = insert(node->left, p);
+        else if (p.crowd_density > node->platform.crowd_density)
+            node->right = insert(node->right, p);
+        else return node;
+
+        node->height = 1 + max(height(node->left), height(node->right));
+
+        int balance = getBalance(node);
+
+        if (balance > 1 && p.crowd_density < node->left->platform.crowd_density)
+            return rightRotate(node);
+        if (balance < -1 && p.crowd_density > node->right->platform.crowd_density)
+            return leftRotate(node);
+        if (balance > 1 && p.crowd_density > node->left->platform.crowd_density) {
+            node->left = leftRotate(node->left);
+            return rightRotate(node);
+        }
+        if (balance < -1 && p.crowd_density < node->right->platform.crowd_density) {
+            node->right = rightRotate(node->right);
+            return leftRotate(node);
+        }
+
+        return node;
+    }
+
+    void inOrder(AVLNode* root) {
+        if (root != nullptr) {
+            inOrder(root->left);
+            cout << "Platform " << root->platform.platform_id
+                 << " with crowd density " << root->platform.crowd_density
+                 << " and trains: ";
+            for (int train_id : root->platform.train_ids) {
+                cout << train_id << " ";
+            }
+            cout << endl;
+            inOrder(root->right);
+        }
+    }
+
+    void detectOvercrowdedPlatformsHelper(AVLNode* root, priority_queue<Platform>& pq) {
+        if (root != nullptr) {
+            detectOvercrowdedPlatformsHelper(root->left, pq);
+            if (root->platform.crowd_density >= 500) {
+                pq.push(root->platform); // Add overcrowded platform to the priority queue
+            }
+            detectOvercrowdedPlatformsHelper(root->right, pq);
+        }
+    }
+
+public:
+    AVLTree() : root(nullptr) {}
+
+    void insertPlatform(Platform p) {
+        root = insert(root, p);
+    }
+
+    void displayPlatforms() {
+        inOrder(root);
+    }
+
+    void detectOvercrowdedPlatforms(priority_queue<Platform>& pq) {
+        detectOvercrowdedPlatformsHelper(root, pq);
+    }
+};
+
+// Main program
+int main() {
+    AVLTree tree;
+    priority_queue<Platform> pq;
+    int n;
+
+    cout << "Enter the number of platforms: ";
+    cin >> n;
+
+    for (int i = 0; i < n; ++i) {
+        int platform_id, crowd_density, num_trains;
+        cout << "Enter platform ID and crowd density for platform " << i + 1 << ": ";
+        cin >> platform_id >> crowd_density;
+
+        cout << "Enter the number of trains on this platform: ";
+        cin >> num_trains;
+
+        vector<int> train_ids(num_trains);
+        cout << "Enter train IDs for platform " << platform_id << ": ";
+        for (int j = 0; j < num_trains; ++j) {
+            cin >> train_ids[j];
+        }
+
+        tree.insertPlatform(Platform(platform_id, crowd_density, train_ids));
+    }
+
+    cout << "\nPlatforms in AVL Tree (sorted by crowd density):" << endl;
+    tree.displayPlatforms();
+
+    cout << "\nDetecting overcrowded platforms and adding to priority queue:" << endl;
+    tree.detectOvercrowdedPlatforms(pq);
+
+    cout << "\nOvercrowded platforms are:" << endl;
+    while (!pq.empty()) {
+        Platform p = pq.top();
+        pq.pop();
+        cout << "Platform " << p.platform_id << " with crowd density " << p.crowd_density
+             << " and trains: ";
+        for (int train_id : p.train_ids) {
+            cout << train_id << " ";
+        }
+        cout << endl;
+    }
+
+    return 0;
+
+
+<pre>
+<code>
+</code>
+</pre>
+     </section>
+
+     
+ </main>
+
+   </body>
+</html>
